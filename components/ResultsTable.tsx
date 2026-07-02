@@ -1,7 +1,7 @@
 import type { Extension, NameCandidate } from "@/types/name";
 import { DomainBadge } from "./DomainBadge";
 import { ScoreRing } from "./ScoreRing";
-import { StarIcon } from "./icons";
+import { AnvilIcon } from "./icons";
 
 export type SortKey = keyof Pick<NameCandidate, "name" | "length" | "total" | "pronounceability" | "memorability" | "uniqueness" | "brandability">;
 
@@ -48,7 +48,7 @@ export function ResultsTable({ candidates, extension, shortlisted, onToggleShort
             <th className="px-3 py-3.5">{extension}</th>
             <th className="px-3 py-3.5">Website</th>
             <th className="px-3 py-3.5">What it is</th>
-            <th className="px-4 py-3.5 text-right">Save</th>
+            <th className="px-4 py-3.5 text-right">Forge</th>
           </tr>
         </thead>
         <tbody>
@@ -105,8 +105,8 @@ export function ResultsTable({ candidates, extension, shortlisted, onToggleShort
                   </p>
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <button aria-label={saved ? `Remove ${candidate.name} from shortlist` : `Shortlist ${candidate.name}`} onClick={() => onToggleShortlist(candidate.name)} className={`rounded-lg p-2 transition ${saved ? "bg-lime/10 text-lime" : "text-[#545a64] hover:bg-white/5 hover:text-white"}`}>
-                    <StarIcon filled={saved} className="h-4 w-4" />
+                  <button aria-label={saved ? `Remove ${candidate.name} from workshop` : `Forge ${candidate.name}`} title={saved ? "Remove from workshop" : "Send to Name Workshop"} onClick={() => onToggleShortlist(candidate.name)} className={`rounded-lg p-2 transition ${saved ? "bg-lime/10 text-lime" : "text-[#545a64] hover:bg-white/5 hover:text-white"}`}>
+                    <AnvilIcon filled={saved} className="h-5 w-5" />
                   </button>
                 </td>
               </tr>

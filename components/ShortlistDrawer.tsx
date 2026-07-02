@@ -1,5 +1,5 @@
 import type { Extension, ShortlistEntry, WorkspaceVariant } from "@/types/name";
-import { SparkIcon, StarIcon } from "./icons";
+import { AnvilIcon, SparkIcon } from "./icons";
 
 interface Props {
   entries: ShortlistEntry[];
@@ -20,7 +20,7 @@ export function ShortlistDrawer({ entries, extensions, generating, onNote, onRem
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <StarIcon filled className="h-4 w-4 text-lime" />
+            <AnvilIcon filled className="h-5 w-5 text-lime" />
             <h2 className="font-display text-lg font-semibold">Name Workshop</h2>
             <span className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-muted">{entries.length}</span>
           </div>
