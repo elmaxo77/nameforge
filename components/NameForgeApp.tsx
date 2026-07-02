@@ -156,12 +156,14 @@ export function NameForgeApp() {
         return {
           ...candidate,
           domains,
-          summary: research?.description
-            ? {
-                description: research.description,
-                sourceDomain: researchItem?.status === "taken" ? researchItem.domain : undefined,
-              }
-            : candidate.summary,
+          summary: {
+            description: research?.description || (
+              researchItem?.status === "taken"
+                ? "Registered domain; no public site description was available."
+                : "No notable name matches found."
+            ),
+            sourceDomain: researchItem?.status === "taken" ? researchItem.domain : undefined,
+          },
         };
       }));
     } finally {

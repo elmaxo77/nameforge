@@ -1,5 +1,5 @@
 import type { Extension, ShortlistEntry, WorkspaceVariant } from "@/types/name";
-import { AnvilIcon, SparkIcon } from "./icons";
+import { AnvilIcon, SparkIcon, TrashIcon } from "./icons";
 
 interface Props {
   entries: ShortlistEntry[];
@@ -81,7 +81,13 @@ export function ShortlistDrawer({ entries, extensions, generating, onNote, onRem
                     <SparkIcon className={`h-3.5 w-3.5 ${isGenerating ? "animate-spin" : ""}`} />
                     {isGenerating ? "Exploring…" : "Generate variants"}
                   </button>
-                  <button className="px-2 text-lg leading-none text-muted hover:text-white" aria-label={`Remove ${entry.name}`} onClick={() => onRemove(entry.name)}>×</button>
+                  <button
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-rose-400/15 px-2.5 py-2 text-[10px] font-semibold text-rose-300/80 transition hover:border-rose-400/30 hover:bg-rose-400/[0.08] hover:text-rose-200"
+                    aria-label={`Remove ${entry.name} from workshop`}
+                    onClick={() => onRemove(entry.name)}
+                  >
+                    <TrashIcon className="h-3.5 w-3.5" /> Remove
+                  </button>
                 </div>
               </div>
 
