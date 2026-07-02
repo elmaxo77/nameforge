@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { DEFAULT_OPTIONS } from "@/data/seed";
 import { exportCandidatesCsv } from "@/lib/csv";
 import { generateNames } from "@/lib/generator";
+import { hashString } from "@/lib/random";
+import { scoreName } from "@/lib/scoring";
 import type { Extension, GeneratorOptions, NameCandidate, ShortlistEntry } from "@/types/name";
 import { DownloadIcon, GlobeIcon, SparkIcon } from "./icons";
 import { InputPanel } from "./InputPanel";
@@ -24,6 +26,8 @@ export function NameForgeApp() {
   const [shortlist, setShortlist] = useState<ShortlistEntry[]>([]);
   const [visibleCount, setVisibleCount] = useState(60);
   const [verifying, setVerifying] = useState<Set<string>>(new Set());
+  const [exploring, setExploring] = useState<Set<string>>(new Set());
+  const [explored, setExplored] = useState<Record<string, string>>({});
 
   useEffect(() => {
     try {
@@ -131,6 +135,58 @@ export function NameForgeApp() {
     }
   };
 
+  const exploreCandidate = async (candidate: NameCandidate) => {
+    setExploring((current) => new Set(current).add(candidate.id));
+    try {
+      const response = await fetch("/api/domains/explore", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: candidate.name, extension }),
+      });
+      if (!response.ok) throw new Error("Exploration failed");
+      const result = await response.json() as {
+        name: string | null;
+        domain?: string;
+        attempts: number;
+      };
+      if (!result.name || !result.domain) {
+        setExplored((current) => ({ ...current, [candidate.id]: `No close match in ${result.attempts} tries` }));
+        return;
+      }
+      const newCandidate: NameCandidate = {
+        id: `explore-${hashString(result.domain)}-${Date.now()}`,
+        name: result.name,
+        length: result.name.length,
+        domains: {
+          ".com": extension === ".com" ? "available" : "unknown",
+          ".ai": extension === ".ai" ? "available" : "unknown",
+          ".io": extension === ".io" ? "available" : "unknown",
+        },
+        research: {
+          [extension]: { description: `Available close variant of ${candidate.name}.` },
+        },
+        ...scoreName(result.name),
+      };
+      setCandidates((current) =>
+        current.some((item) => item.name.toLowerCase() === result.name!.toLowerCase())
+          ? current
+          : [newCandidate, ...current],
+      );
+      setExplored((current) => ({
+        ...current,
+        [candidate.id]: `Found ${result.domain} in ${result.attempts} tries`,
+      }));
+    } catch {
+      setExplored((current) => ({ ...current, [candidate.id]: "Exploration unavailable — try again" }));
+    } finally {
+      setExploring((current) => {
+        const next = new Set(current);
+        next.delete(candidate.id);
+        return next;
+      });
+    }
+  };
+
   return (
     <main className="mx-auto min-h-screen max-w-[1500px] px-4 pb-12 sm:px-6">
       <header className="flex items-center justify-between border-b border-line/70 py-5">
@@ -188,7 +244,7 @@ export function NameForgeApp() {
               }}
               availableExtensions={options.extensions}
             />
-            <ResultsTable candidates={filtered.slice(0, visibleCount)} extension={extension} shortlisted={new Set(shortlist.map((item) => item.name))} onToggleShortlist={toggleShortlist} sort={sort} descending={descending} onSort={changeSort} onVerify={(candidate) => verifyDomains([candidate])} verifying={verifying} />
+            <ResultsTable candidates={filtered.slice(0, visibleCount)} extension={extension} shortlisted={new Set(shortlist.map((item) => item.name))} onToggleShortlist={toggleShortlist} sort={sort} descending={descending} onSort={changeSort} onVerify={(candidate) => verifyDomains([candidate])} verifying={verifying} onExplore={exploreCandidate} exploring={exploring} explored={explored} />
             {visibleCount < filtered.length && (
               <div className="border-t border-line p-4 text-center">
                 <button onClick={() => setVisibleCount((count) => count + 60)} className="rounded-xl border border-line px-5 py-2.5 text-xs font-semibold text-muted transition hover:bg-white/5 hover:text-white">Show 60 more</button>
