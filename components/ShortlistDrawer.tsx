@@ -16,7 +16,7 @@ export function ShortlistDrawer({ entries, extensions, generating, onNote, onRem
   if (!entries.length) return null;
 
   return (
-    <section className="mt-5 rounded-2xl border border-line bg-panel/90 p-5">
+    <section id="name-workshop" className="mt-5 scroll-mt-6 rounded-2xl border border-line bg-panel/90 p-5">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
@@ -37,9 +37,14 @@ export function ShortlistDrawer({ entries, extensions, generating, onNote, onRem
             <article key={entry.name} className="overflow-hidden rounded-2xl border border-line bg-[#090b0e]">
               <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line p-4">
                 <div>
-                  {currentName !== entry.name && (
-                    <div className="mb-1 text-[9px] uppercase tracking-[0.15em] text-muted">From {entry.name}</div>
-                  )}
+                  <div className="mb-1.5 flex max-w-[70vw] flex-wrap items-center gap-1 text-[9px] font-semibold uppercase tracking-[0.12em] text-muted">
+                    {[...(entry.history || []), currentName].map((step, index, trail) => (
+                      <span key={`${step}-${index}`} className="inline-flex items-center gap-1">
+                        <span className={index === trail.length - 1 ? "text-lime" : ""}>{step}</span>
+                        {index < trail.length - 1 && <span className="text-[#454b55]">›</span>}
+                      </span>
+                    ))}
+                  </div>
                   <div className="font-display text-2xl font-semibold tracking-tight">{currentName}</div>
                 </div>
                 <div className="flex items-center gap-2">

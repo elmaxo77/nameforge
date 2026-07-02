@@ -65,11 +65,20 @@ export function NameForgeApp() {
   };
 
   const toggleShortlist = (name: string) => {
+    const isRemoving = shortlist.some((item) => item.name === name);
     setShortlist((current) =>
-      current.some((item) => item.name === name)
+      isRemoving
         ? current.filter((item) => item.name !== name)
         : [{ name, note: "", addedAt: Date.now() }, ...current],
     );
+    if (!isRemoving) {
+      window.setTimeout(() => {
+        document.getElementById("name-workshop")?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 50);
+    }
   };
 
   const changeSort = (key: SortKey) => {
