@@ -52,9 +52,10 @@ export function NameForgeApp() {
 
   const generate = () => {
     setGenerating(true);
+    setFilters({ minScore: 0, maxLength: 18, status: "all" });
+    setVisibleCount(60);
     window.setTimeout(() => {
       setCandidates(generateNames({ ...options, count: 500, seed: Date.now() }));
-      setVisibleCount(60);
       setGenerating(false);
     }, 250);
   };
