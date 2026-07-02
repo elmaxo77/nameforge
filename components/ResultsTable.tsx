@@ -90,17 +90,25 @@ export function ResultsTable({ candidates, extensions, shortlisted, onToggleShor
                     </button>
                   </div>
                 </td>
-                <td className="max-w-72 px-3 py-3">
-                  <div className="flex min-w-0 items-center gap-1.5">
-                    {candidate.summary?.sourceDomain && (
-                      <span className="shrink-0 rounded bg-rose-400/10 px-1.5 py-0.5 text-[8px] font-semibold text-rose-300">
-                        {candidate.summary.sourceDomain}
-                      </span>
-                    )}
-                    <p className="truncate text-xs text-[#aeb3bc]" title={candidate.summary?.description}>
-                      {candidate.summary?.description || "Verify domains to research this name"}
-                    </p>
-                  </div>
+                <td className="max-w-80 px-3 py-3">
+                  {candidate.summaries?.length ? (
+                    <div className="space-y-1.5">
+                      {candidate.summaries.map((summary, index) => (
+                        <div key={`${summary.sourceDomain || "context"}-${index}`} className="flex min-w-0 items-center gap-1.5">
+                          {summary.sourceDomain && (
+                            <span className="shrink-0 rounded bg-rose-400/10 px-1.5 py-0.5 text-[8px] font-semibold text-rose-300">
+                              {summary.sourceDomain}
+                            </span>
+                          )}
+                          <p className="truncate text-[11px] text-[#aeb3bc]" title={summary.description}>
+                            {summary.description}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-[#aeb3bc]">Verify domains to research this name</p>
+                  )}
                 </td>
                 <td className="px-4 py-3 text-right">
                   <button aria-label={saved ? `Remove ${candidate.name} from workshop` : `Forge ${candidate.name}`} title={saved ? "Remove from workshop" : "Send to Name Workshop"} onClick={() => onToggleShortlist(candidate.name)} className={`rounded-lg p-2 transition ${saved ? "bg-lime/10 text-lime" : "text-[#545a64] hover:bg-white/5 hover:text-white"}`}>

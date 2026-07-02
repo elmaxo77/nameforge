@@ -17,7 +17,7 @@ The server uses IANA's RDAP bootstrap registry to discover the authoritative ser
 
 After verification, registered domains are enriched with their public homepage title or meta description. Available names are matched against Wikipedia's public search endpoint for a short, one-line context description. Website requests have strict timeouts and private-network protections.
 
-Main results compare every selected extension at once. Available domains appear green; registered domains appear red and link to the live site. Descriptions favor `.ai` for AI briefs, `.io` for fintech briefs, and `.com` otherwise, with sensible fallbacks. Name exploration lives exclusively in the Forge workshop.
+Main results compare every selected extension at once. Available domains appear green; registered domains appear red and link to the live site. Every registered domain gets its own one-line homepage description, ordered with `.ai` first for AI briefs, `.io` first for fintech briefs, and `.com` first otherwise. Wikipedia is used only when every selected domain is available. Name exploration lives exclusively in the Forge workshop.
 
 Starred names enter a persistent Name Workshop. Each workshop session can generate eight scored variants with live domain checks, preserve the current name length by default or target 3–12 letters with a stepper, highlight variants with at least one available selected extension, follow a chosen variant into another generation, and step backward through its independent history.
 

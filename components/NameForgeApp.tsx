@@ -117,32 +117,43 @@ export function NameForgeApp() {
         : options.tone === "fintech"
           ? ".io"
           : ".com";
-      const researchItems = batch.map((item) => {
-        const takenExtensions = options.extensions.filter((value) => statusFor(item, value) === "taken");
-        const sourceExtension = takenExtensions.includes(preferredExtension)
-          ? preferredExtension
-          : takenExtensions.includes(".com")
-            ? ".com"
-            : takenExtensions[0];
+      const orderedExtensions = [
+        preferredExtension,
+        ...options.extensions.filter((value) => value !== preferredExtension),
+      ].filter((value, index, values) => options.extensions.includes(value) && values.indexOf(value) === index);
+      const researchItems = batch.flatMap((item) => {
+        const takenExtensions = orderedExtensions.filter((value) => statusFor(item, value) === "taken");
         const fallbackExtension = options.extensions[0] || ".com";
-        const selectedExtension = sourceExtension || fallbackExtension;
-        return {
+        if (!takenExtensions.length) return [{
+          name: item.name,
+          domain: `${item.name.toLowerCase()}${fallbackExtension}`,
+          status: "available",
+        }];
+        return takenExtensions.map((selectedExtension) => ({
           name: item.name,
           domain: `${item.name.toLowerCase()}${selectedExtension}`,
-          status: sourceExtension ? "taken" : "available",
-        };
+          status: "taken",
+        }));
       });
 
-      const researchResponse = await fetch("/api/domains/research", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items: researchItems }),
-      });
-      const researchData = researchResponse.ok
-        ? await researchResponse.json() as {
-            results: Record<string, { website?: string; description?: string }>;
-          }
-        : { results: {} };
+      const researchChunks = Array.from(
+        { length: Math.ceil(researchItems.length / 25) },
+        (_, index) => researchItems.slice(index * 25, index * 25 + 25),
+      );
+      const researchResponses = await Promise.all(researchChunks.map(async (items) => {
+        const response = await fetch("/api/domains/research", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ items }),
+        });
+        return response.ok
+          ? await response.json() as {
+              results: Record<string, { website?: string; description?: string }>;
+            }
+          : { results: {} };
+      }));
+      const researchResults = Object.assign({}, ...researchResponses.map((data) => data.results)) as
+        Record<string, { website?: string; description?: string }>;
 
       setCandidates((current) => current.map((candidate) => {
         const matched = batch.some((item) => item.id === candidate.id);
@@ -151,19 +162,19 @@ export function NameForgeApp() {
         options.extensions.forEach((selectedExtension) => {
           domains[selectedExtension] = statusFor(candidate, selectedExtension);
         });
-        const researchItem = researchItems.find((item) => item.name === candidate.name);
-        const research = researchItem ? researchData.results[researchItem.domain] : undefined;
+        const candidateResearch = researchItems.filter((item) => item.name === candidate.name);
+        const summaries = candidateResearch.map((item) => ({
+          description: researchResults[item.domain]?.description || (
+            item.status === "taken"
+              ? "Registered domain; no public site description was available."
+              : "No notable name matches found."
+          ),
+          sourceDomain: item.status === "taken" ? item.domain : undefined,
+        }));
         return {
           ...candidate,
           domains,
-          summary: {
-            description: research?.description || (
-              researchItem?.status === "taken"
-                ? "Registered domain; no public site description was available."
-                : "No notable name matches found."
-            ),
-            sourceDomain: researchItem?.status === "taken" ? researchItem.domain : undefined,
-          },
+          summaries,
         };
       }));
     } finally {
