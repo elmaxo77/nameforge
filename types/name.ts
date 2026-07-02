@@ -25,7 +25,7 @@ export interface NameCandidate extends NameScores {
   name: string;
   length: number;
   domains: Record<Extension, DomainStatus>;
-  research?: Partial<Record<Extension, { website?: string; description?: string }>>;
+  summary?: { description: string; sourceDomain?: string };
 }
 
 export interface ShortlistEntry {

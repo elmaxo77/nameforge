@@ -28,7 +28,7 @@ export function Filters({ filters, setFilters, extension, setExtension, availabl
         </select>
       </label>
       <label>
-        <span className="label">Domain</span>
+        <span className="label">Filter TLD</span>
         <select className="control !w-28 !py-2" value={extension} onChange={(e) => setExtension(e.target.value as Extension)}>
           {availableExtensions.map((ext) => <option key={ext}>{ext}</option>)}
         </select>

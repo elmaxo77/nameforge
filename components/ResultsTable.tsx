@@ -1,5 +1,4 @@
 import type { Extension, NameCandidate } from "@/types/name";
-import { DomainBadge } from "./DomainBadge";
 import { ScoreRing } from "./ScoreRing";
 import { AnvilIcon } from "./icons";
 
@@ -7,7 +6,7 @@ export type SortKey = keyof Pick<NameCandidate, "name" | "length" | "total" | "p
 
 interface Props {
   candidates: NameCandidate[];
-  extension: Extension;
+  extensions: Extension[];
   shortlisted: Set<string>;
   onToggleShortlist: (name: string) => void;
   sort: SortKey;
@@ -15,9 +14,6 @@ interface Props {
   onSort: (key: SortKey) => void;
   onVerify: (candidate: NameCandidate) => void;
   verifying: Set<string>;
-  onExplore: (candidate: NameCandidate) => void;
-  exploring: Set<string>;
-  exploreErrors: Record<string, string>;
 }
 
 const Metric = ({ value }: { value: number }) => (
@@ -27,7 +23,7 @@ const Metric = ({ value }: { value: number }) => (
   </div>
 );
 
-export function ResultsTable({ candidates, extension, shortlisted, onToggleShortlist, sort, descending, onSort, onVerify, verifying, onExplore, exploring, exploreErrors }: Props) {
+export function ResultsTable({ candidates, extensions, shortlisted, onToggleShortlist, sort, descending, onSort, onVerify, verifying }: Props) {
   const Header = ({ label, field }: { label: string; field: SortKey }) => (
     <button className={`inline-flex items-center gap-1 transition hover:text-white ${sort === field ? "text-white" : ""}`} onClick={() => onSort(field)}>
       {label}<span className={sort === field && !descending ? "rotate-180" : ""}>↓</span>
@@ -45,8 +41,7 @@ export function ResultsTable({ candidates, extension, shortlisted, onToggleShort
             <th className="px-3 py-3.5"><Header label="Recall" field="memorability" /></th>
             <th className="px-3 py-3.5"><Header label="Unique" field="uniqueness" /></th>
             <th className="px-3 py-3.5"><Header label="Brand" field="brandability" /></th>
-            <th className="px-3 py-3.5">{extension}</th>
-            <th className="px-3 py-3.5">Website</th>
+            <th className="px-3 py-3.5">Domains</th>
             <th className="px-3 py-3.5">What it is</th>
             <th className="px-4 py-3.5 text-right">Forge</th>
           </tr>
@@ -54,7 +49,6 @@ export function ResultsTable({ candidates, extension, shortlisted, onToggleShort
         <tbody>
           {candidates.map((candidate) => {
             const saved = shortlisted.has(candidate.name);
-            const research = candidate.research?.[extension];
             return (
               <tr key={candidate.id} className="group border-b border-line/70 transition hover:bg-white/[0.025]">
                 <td className="px-5 py-3">
@@ -67,8 +61,26 @@ export function ResultsTable({ candidates, extension, shortlisted, onToggleShort
                 <td className="px-3 py-3"><Metric value={candidate.uniqueness} /></td>
                 <td className="px-3 py-3"><Metric value={candidate.brandability} /></td>
                 <td className="px-3 py-3">
-                  <div className="flex items-center gap-1">
-                    <DomainBadge status={candidate.domains[extension]} />
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {extensions.map((extension) => {
+                      const status = candidate.domains[extension];
+                      const domain = `${candidate.name.toLowerCase()}${extension}`;
+                      const styles = status === "available"
+                        ? "border-lime/35 bg-lime/[0.08] text-lime"
+                        : status === "taken"
+                          ? "border-rose-400/25 bg-rose-400/[0.08] text-rose-300"
+                          : "border-line bg-white/[0.025] text-muted";
+                      const content = <><span className="h-1.5 w-1.5 rounded-full bg-current" />{domain}</>;
+                      return status === "taken" ? (
+                        <a key={extension} href={`https://${domain}`} target="_blank" rel="noreferrer" className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-[9px] font-semibold transition hover:brightness-125 ${styles}`}>
+                          {content}
+                        </a>
+                      ) : (
+                        <span key={extension} className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-[9px] font-semibold ${styles}`}>
+                          {content}
+                        </span>
+                      );
+                    })}
                     <button
                       onClick={() => onVerify(candidate)}
                       disabled={verifying.has(candidate.id)}
@@ -76,33 +88,19 @@ export function ResultsTable({ candidates, extension, shortlisted, onToggleShort
                     >
                       {verifying.has(candidate.id) ? "…" : "Check"}
                     </button>
-                    {candidate.domains[extension] === "taken" && (
-                      <button
-                        onClick={() => onExplore(candidate)}
-                        disabled={exploring.has(candidate.id)}
-                        className="rounded-md border border-lime/20 bg-lime/5 px-1.5 py-1 text-[9px] font-semibold text-lime transition hover:bg-lime/10 disabled:opacity-40"
-                      >
-                        {exploring.has(candidate.id) ? "Exploring…" : "Explore"}
-                      </button>
-                    )}
                   </div>
-                  {exploreErrors[candidate.id] && (
-                    <div className="mt-1 max-w-48 truncate text-[9px] font-medium text-rose-300">
-                      {exploreErrors[candidate.id]}
-                    </div>
-                  )}
-                </td>
-                <td className="max-w-40 px-3 py-3">
-                  {research?.website ? (
-                    <a href={research.website} target="_blank" rel="noreferrer" className="block truncate text-xs font-medium text-lime hover:underline">
-                      {research.website.replace(/^https?:\/\//, "")}
-                    </a>
-                  ) : <span className="text-xs text-[#4f5560]">—</span>}
                 </td>
                 <td className="max-w-72 px-3 py-3">
-                  <p className="truncate text-xs text-[#aeb3bc]" title={research?.description}>
-                    {research?.description || (candidate.domains[extension] === "unknown" ? "Verify domain first" : "Researching…")}
-                  </p>
+                  <div className="flex min-w-0 items-center gap-1.5">
+                    {candidate.summary?.sourceDomain && (
+                      <span className="shrink-0 rounded bg-rose-400/10 px-1.5 py-0.5 text-[8px] font-semibold text-rose-300">
+                        {candidate.summary.sourceDomain}
+                      </span>
+                    )}
+                    <p className="truncate text-xs text-[#aeb3bc]" title={candidate.summary?.description}>
+                      {candidate.summary?.description || "Verify domains to research this name"}
+                    </p>
+                  </div>
                 </td>
                 <td className="px-4 py-3 text-right">
                   <button aria-label={saved ? `Remove ${candidate.name} from workshop` : `Forge ${candidate.name}`} title={saved ? "Remove from workshop" : "Send to Name Workshop"} onClick={() => onToggleShortlist(candidate.name)} className={`rounded-lg p-2 transition ${saved ? "bg-lime/10 text-lime" : "text-[#545a64] hover:bg-white/5 hover:text-white"}`}>
