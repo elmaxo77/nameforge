@@ -17,7 +17,7 @@ interface Props {
   verifying: Set<string>;
   onExplore: (candidate: NameCandidate) => void;
   exploring: Set<string>;
-  explored: Record<string, string>;
+  exploreErrors: Record<string, string>;
 }
 
 const Metric = ({ value }: { value: number }) => (
@@ -27,7 +27,7 @@ const Metric = ({ value }: { value: number }) => (
   </div>
 );
 
-export function ResultsTable({ candidates, extension, shortlisted, onToggleShortlist, sort, descending, onSort, onVerify, verifying, onExplore, exploring, explored }: Props) {
+export function ResultsTable({ candidates, extension, shortlisted, onToggleShortlist, sort, descending, onSort, onVerify, verifying, onExplore, exploring, exploreErrors }: Props) {
   const Header = ({ label, field }: { label: string; field: SortKey }) => (
     <button className={`inline-flex items-center gap-1 transition hover:text-white ${sort === field ? "text-white" : ""}`} onClick={() => onSort(field)}>
       {label}<span className={sort === field && !descending ? "rotate-180" : ""}>↓</span>
@@ -86,9 +86,9 @@ export function ResultsTable({ candidates, extension, shortlisted, onToggleShort
                       </button>
                     )}
                   </div>
-                  {explored[candidate.id] && (
-                    <div className="mt-1 max-w-48 truncate text-[9px] font-medium text-lime">
-                      {explored[candidate.id]}
+                  {exploreErrors[candidate.id] && (
+                    <div className="mt-1 max-w-48 truncate text-[9px] font-medium text-rose-300">
+                      {exploreErrors[candidate.id]}
                     </div>
                   )}
                 </td>

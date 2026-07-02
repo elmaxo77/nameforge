@@ -17,7 +17,7 @@ The server uses IANA's RDAP bootstrap registry to discover the authoritative ser
 
 After verification, registered domains are enriched with their public homepage title or meta description. Available names are matched against Wikipedia's public search endpoint for a short, one-line context description. Website requests have strict timeouts and private-network protections.
 
-Taken domains can be explored for close available alternatives. The engine tries letter reshuffles first, then small pronounceable insertions, substitutions, and endings, checking at most 40 variants through RDAP.
+Taken domains can be explored for close available alternatives. The engine tries letter reshuffles first, then small pronounceable insertions, substitutions, and endings, checking at most 40 variants through RDAP. When found, the available alternative replaces the taken candidate directly in its result row.
 
 ## Storage
 

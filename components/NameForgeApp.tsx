@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { DEFAULT_OPTIONS } from "@/data/seed";
 import { exportCandidatesCsv } from "@/lib/csv";
 import { generateNames } from "@/lib/generator";
-import { hashString } from "@/lib/random";
 import { scoreName } from "@/lib/scoring";
 import type { Extension, GeneratorOptions, NameCandidate, ShortlistEntry } from "@/types/name";
 import { DownloadIcon, GlobeIcon, SparkIcon } from "./icons";
@@ -27,7 +26,7 @@ export function NameForgeApp() {
   const [visibleCount, setVisibleCount] = useState(60);
   const [verifying, setVerifying] = useState<Set<string>>(new Set());
   const [exploring, setExploring] = useState<Set<string>>(new Set());
-  const [explored, setExplored] = useState<Record<string, string>>({});
+  const [exploreErrors, setExploreErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     try {
@@ -150,11 +149,11 @@ export function NameForgeApp() {
         attempts: number;
       };
       if (!result.name || !result.domain) {
-        setExplored((current) => ({ ...current, [candidate.id]: `No close match in ${result.attempts} tries` }));
+        setExploreErrors((current) => ({ ...current, [candidate.id]: "No available close variant found" }));
         return;
       }
       const newCandidate: NameCandidate = {
-        id: `explore-${hashString(result.domain)}-${Date.now()}`,
+        id: candidate.id,
         name: result.name,
         length: result.name.length,
         domains: {
@@ -168,16 +167,15 @@ export function NameForgeApp() {
         ...scoreName(result.name),
       };
       setCandidates((current) =>
-        current.some((item) => item.name.toLowerCase() === result.name!.toLowerCase())
-          ? current
-          : [newCandidate, ...current],
+        current.map((item) => item.id === candidate.id ? newCandidate : item),
       );
-      setExplored((current) => ({
-        ...current,
-        [candidate.id]: `Found ${result.domain} in ${result.attempts} tries`,
-      }));
+      setExploreErrors((current) => {
+        const next = { ...current };
+        delete next[candidate.id];
+        return next;
+      });
     } catch {
-      setExplored((current) => ({ ...current, [candidate.id]: "Exploration unavailable — try again" }));
+      setExploreErrors((current) => ({ ...current, [candidate.id]: "Exploration unavailable — try again" }));
     } finally {
       setExploring((current) => {
         const next = new Set(current);
@@ -244,7 +242,7 @@ export function NameForgeApp() {
               }}
               availableExtensions={options.extensions}
             />
-            <ResultsTable candidates={filtered.slice(0, visibleCount)} extension={extension} shortlisted={new Set(shortlist.map((item) => item.name))} onToggleShortlist={toggleShortlist} sort={sort} descending={descending} onSort={changeSort} onVerify={(candidate) => verifyDomains([candidate])} verifying={verifying} onExplore={exploreCandidate} exploring={exploring} explored={explored} />
+            <ResultsTable candidates={filtered.slice(0, visibleCount)} extension={extension} shortlisted={new Set(shortlist.map((item) => item.name))} onToggleShortlist={toggleShortlist} sort={sort} descending={descending} onSort={changeSort} onVerify={(candidate) => verifyDomains([candidate])} verifying={verifying} onExplore={exploreCandidate} exploring={exploring} exploreErrors={exploreErrors} />
             {visibleCount < filtered.length && (
               <div className="border-t border-line p-4 text-center">
                 <button onClick={() => setVisibleCount((count) => count + 60)} className="rounded-xl border border-line px-5 py-2.5 text-xs font-semibold text-muted transition hover:bg-white/5 hover:text-white">Show 60 more</button>
