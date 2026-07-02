@@ -1,6 +1,7 @@
 import type { Extension, NameCandidate } from "@/types/name";
 import { ScoreRing } from "./ScoreRing";
 import { AnvilIcon } from "./icons";
+import { MobileResults } from "./MobileResults";
 
 export type SortKey = keyof Pick<NameCandidate, "name" | "length" | "total" | "pronounceability" | "memorability" | "uniqueness" | "brandability">;
 
@@ -31,7 +32,9 @@ export function ResultsTable({ candidates, extensions, shortlisted, onToggleShor
   );
 
   return (
-    <div className="overflow-x-auto">
+    <div>
+      <MobileResults candidates={candidates} extensions={extensions} shortlisted={shortlisted} verifying={verifying} onToggleShortlist={onToggleShortlist} onVerify={onVerify} />
+      <div className="hidden overflow-x-auto md:block">
       <table className="w-full min-w-[1240px] border-collapse text-left">
         <thead>
           <tr className="border-b border-line bg-[#0a0c0f] text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">
@@ -121,6 +124,7 @@ export function ResultsTable({ candidates, extensions, shortlisted, onToggleShor
         </tbody>
       </table>
       {!candidates.length && <div className="grid h-56 place-items-center text-sm text-muted">No names match these filters.</div>}
+      </div>
     </div>
   );
 }

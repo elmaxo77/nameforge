@@ -16,7 +16,7 @@ export function InputPanel({ options, setOptions, onGenerate, generating }: Prop
     setOptions({ ...options, [key]: value });
 
   return (
-    <aside className="h-fit rounded-2xl border border-line bg-panel/90 p-5 shadow-glow lg:sticky lg:top-6">
+    <aside className="h-fit min-w-0 rounded-2xl border border-line bg-panel/90 p-5 shadow-glow lg:sticky lg:top-6">
       <div className="mb-6">
         <p className="mb-1 font-display text-lg font-semibold">Build your brief</p>
         <p className="text-xs leading-5 text-muted">Give the engine a few ingredients to work with.</p>

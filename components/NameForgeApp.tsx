@@ -274,9 +274,9 @@ export function NameForgeApp() {
         </div>
       </section>
 
-      <div className="grid items-start gap-5 lg:grid-cols-[285px_minmax(0,1fr)]">
+      <div className="grid min-w-0 items-start gap-5 lg:grid-cols-[285px_minmax(0,1fr)]">
         <InputPanel options={options} setOptions={setOptions} onGenerate={generate} generating={generating} />
-        <div>
+        <div className="min-w-0">
           <section className="overflow-hidden rounded-2xl border border-line bg-panel/90 shadow-glow">
             <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
               <div>
