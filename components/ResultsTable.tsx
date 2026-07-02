@@ -13,6 +13,8 @@ interface Props {
   sort: SortKey;
   descending: boolean;
   onSort: (key: SortKey) => void;
+  onVerify: (candidate: NameCandidate) => void;
+  verifying: Set<string>;
 }
 
 const Metric = ({ value }: { value: number }) => (
@@ -22,7 +24,7 @@ const Metric = ({ value }: { value: number }) => (
   </div>
 );
 
-export function ResultsTable({ candidates, extension, shortlisted, onToggleShortlist, sort, descending, onSort }: Props) {
+export function ResultsTable({ candidates, extension, shortlisted, onToggleShortlist, sort, descending, onSort, onVerify, verifying }: Props) {
   const Header = ({ label, field }: { label: string; field: SortKey }) => (
     <button className={`inline-flex items-center gap-1 transition hover:text-white ${sort === field ? "text-white" : ""}`} onClick={() => onSort(field)}>
       {label}<span className={sort === field && !descending ? "rotate-180" : ""}>↓</span>
@@ -58,7 +60,18 @@ export function ResultsTable({ candidates, extension, shortlisted, onToggleShort
                 <td className="px-3 py-3"><Metric value={candidate.memorability} /></td>
                 <td className="px-3 py-3"><Metric value={candidate.uniqueness} /></td>
                 <td className="px-3 py-3"><Metric value={candidate.brandability} /></td>
-                <td className="px-3 py-3"><DomainBadge status={candidate.domains[extension]} /></td>
+                <td className="px-3 py-3">
+                  <div className="flex items-center gap-1">
+                    <DomainBadge status={candidate.domains[extension]} />
+                    <button
+                      onClick={() => onVerify(candidate)}
+                      disabled={verifying.has(candidate.id)}
+                      className="rounded-md px-1.5 py-1 text-[9px] font-semibold text-muted transition hover:bg-white/5 hover:text-white disabled:opacity-40"
+                    >
+                      {verifying.has(candidate.id) ? "…" : "Check"}
+                    </button>
+                  </div>
+                </td>
                 <td className="px-4 py-3 text-right">
                   <button aria-label={saved ? `Remove ${candidate.name} from shortlist` : `Shortlist ${candidate.name}`} onClick={() => onToggleShortlist(candidate.name)} className={`rounded-lg p-2 transition ${saved ? "bg-lime/10 text-lime" : "text-[#545a64] hover:bg-white/5 hover:text-white"}`}>
                     <StarIcon filled={saved} className="h-4 w-4" />

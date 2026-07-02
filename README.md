@@ -1,6 +1,6 @@
 # NameForge
 
-A local-first naming engine that generates 500 pronounceable startup names, scores each one, assigns deterministic placeholder domain statuses, and supports filtering, shortlisting, notes, and CSV export.
+A local-first naming engine that generates 500 pronounceable startup names, scores each one, checks domains through live public RDAP services, and supports filtering, shortlisting, notes, and CSV export.
 
 ## Run locally
 
@@ -13,7 +13,7 @@ Open `http://localhost:3000`.
 
 ## Domain availability
 
-`lib/domain/provider.ts` defines the provider interface. The MVP uses `PlaceholderDomainProvider`, which returns stable demo statuses without making network requests. A real registrar/RDAP provider can implement the same interface later.
+The server uses IANA's RDAP bootstrap registry to discover the authoritative service for each extension. A `200` response means registered, `404` means no registration record, and rate limits or inconclusive responses remain `unknown`. Checks are limited to 25 domains per request to respect public registry infrastructure.
 
 ## Storage
 

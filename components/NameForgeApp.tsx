@@ -5,7 +5,7 @@ import { DEFAULT_OPTIONS } from "@/data/seed";
 import { exportCandidatesCsv } from "@/lib/csv";
 import { generateNames } from "@/lib/generator";
 import type { Extension, GeneratorOptions, NameCandidate, ShortlistEntry } from "@/types/name";
-import { DownloadIcon, SparkIcon } from "./icons";
+import { DownloadIcon, GlobeIcon, SparkIcon } from "./icons";
 import { InputPanel } from "./InputPanel";
 import { Filters, type FilterState } from "./Filters";
 import { ResultsTable, type SortKey } from "./ResultsTable";
@@ -23,6 +23,7 @@ export function NameForgeApp() {
   const [descending, setDescending] = useState(true);
   const [shortlist, setShortlist] = useState<ShortlistEntry[]>([]);
   const [visibleCount, setVisibleCount] = useState(60);
+  const [verifying, setVerifying] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     try {
@@ -71,6 +72,36 @@ export function NameForgeApp() {
     else { setSort(key); setDescending(key !== "name"); }
   };
 
+  const verifyDomains = async (items: NameCandidate[]) => {
+    const batch = items.slice(0, 25);
+    if (!batch.length) return;
+    setVerifying((current) => new Set([...current, ...batch.map((item) => item.id)]));
+    try {
+      const domains = batch.map((item) => `${item.name.toLowerCase()}${extension}`);
+      const response = await fetch("/api/domains/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ domains }),
+      });
+      if (!response.ok) throw new Error("Domain check failed");
+      const data = await response.json() as {
+        results: Record<string, NameCandidate["domains"][Extension]>;
+      };
+      setCandidates((current) => current.map((candidate) => {
+        const domain = `${candidate.name.toLowerCase()}${extension}`;
+        return data.results[domain]
+          ? { ...candidate, domains: { ...candidate.domains, [extension]: data.results[domain] } }
+          : candidate;
+      }));
+    } finally {
+      setVerifying((current) => {
+        const next = new Set(current);
+        batch.forEach((item) => next.delete(item.id));
+        return next;
+      });
+    }
+  };
+
   return (
     <main className="mx-auto min-h-screen max-w-[1500px] px-4 pb-12 sm:px-6">
       <header className="flex items-center justify-between border-b border-line/70 py-5">
@@ -104,15 +135,21 @@ export function NameForgeApp() {
                   <h2 className="font-display text-lg font-semibold">Forged names</h2>
                   <span className="text-xs text-muted">{filtered.length} of {candidates.length}</span>
                 </div>
-                <p className="mt-0.5 text-[10px] text-muted">Placeholder domain signals are deterministic, not live checks.</p>
+                <p className="mt-0.5 text-[10px] text-muted">Domain results come from live registry RDAP checks.</p>
               </div>
-              <button onClick={() => exportCandidatesCsv(filtered, options.extensions)} className="inline-flex items-center gap-2 rounded-xl border border-line bg-white/[0.025] px-3.5 py-2.5 text-xs font-semibold text-[#d7d9de] transition hover:border-[#353a43] hover:bg-white/5">
-                <DownloadIcon className="h-4 w-4" /> Export CSV
-              </button>
+              <div className="flex flex-wrap gap-2">
+                <button disabled={verifying.size > 0} onClick={() => verifyDomains(filtered)} className="inline-flex items-center gap-2 rounded-xl border border-lime/25 bg-lime/10 px-3.5 py-2.5 text-xs font-semibold text-lime transition hover:bg-lime/15 disabled:opacity-50">
+                  <GlobeIcon className={`h-4 w-4 ${verifying.size ? "animate-spin" : ""}`} />
+                  {verifying.size ? "Checking…" : `Verify top 25 ${extension}`}
+                </button>
+                <button onClick={() => exportCandidatesCsv(filtered, options.extensions)} className="inline-flex items-center gap-2 rounded-xl border border-line bg-white/[0.025] px-3.5 py-2.5 text-xs font-semibold text-[#d7d9de] transition hover:border-[#353a43] hover:bg-white/5">
+                  <DownloadIcon className="h-4 w-4" /> Export CSV
+                </button>
+              </div>
             </div>
 
             <Filters filters={filters} setFilters={(value) => { setFilters(value); setVisibleCount(60); }} extension={extension} setExtension={setExtension} availableExtensions={options.extensions} />
-            <ResultsTable candidates={filtered.slice(0, visibleCount)} extension={extension} shortlisted={new Set(shortlist.map((item) => item.name))} onToggleShortlist={toggleShortlist} sort={sort} descending={descending} onSort={changeSort} />
+            <ResultsTable candidates={filtered.slice(0, visibleCount)} extension={extension} shortlisted={new Set(shortlist.map((item) => item.name))} onToggleShortlist={toggleShortlist} sort={sort} descending={descending} onSort={changeSort} onVerify={(candidate) => verifyDomains([candidate])} verifying={verifying} />
             {visibleCount < filtered.length && (
               <div className="border-t border-line p-4 text-center">
                 <button onClick={() => setVisibleCount((count) => count + 60)} className="rounded-xl border border-line px-5 py-2.5 text-xs font-semibold text-muted transition hover:bg-white/5 hover:text-white">Show 60 more</button>

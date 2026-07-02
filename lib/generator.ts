@@ -1,4 +1,3 @@
-import { domainProvider } from "@/lib/domain/placeholder";
 import { hashString, mulberry32, pick } from "@/lib/random";
 import { scoreName } from "@/lib/scoring";
 import type { GeneratorOptions, NameCandidate, Tone } from "@/types/name";
@@ -85,11 +84,7 @@ export function generateNames(options: GeneratorOptions): NameCandidate[] {
   }
 
   return [...names].map((name) => {
-    const domains = {
-      ".com": domainProvider.checkSync(name, ".com"),
-      ".ai": domainProvider.checkSync(name, ".ai"),
-      ".io": domainProvider.checkSync(name, ".io"),
-    };
+    const domains = { ".com": "unknown", ".ai": "unknown", ".io": "unknown" } as const;
     return {
       id: `${hashString(name)}-${seed}`,
       name,

@@ -1,4 +1,4 @@
-import type { Extension, GeneratorOptions, NameCandidate } from "@/types/name";
+import type { GeneratorOptions } from "@/types/name";
 
 export const DEFAULT_OPTIONS: GeneratorOptions = {
   roots: ["forge", "nova", "atlas"],
@@ -14,9 +14,3 @@ export const SEED_NAMES = [
   "Avenor", "Novara", "Velora", "Orvian", "Zenvia", "Lunaro",
   "Aureli", "Kovari", "Elvora", "Nexari", "Solvyn", "Arqen",
 ];
-
-export const emptyDomains = (): Record<Extension, NameCandidate["domains"][Extension]> => ({
-  ".com": "unknown",
-  ".ai": "unknown",
-  ".io": "unknown",
-});
