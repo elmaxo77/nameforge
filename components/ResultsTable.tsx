@@ -36,6 +36,7 @@ export function ResultsTable({ candidates, extensions, shortlisted, onToggleShor
         <thead>
           <tr className="border-b border-line bg-[#0a0c0f] text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">
             <th className="px-5 py-3.5"><Header label="Name" field="name" /></th>
+            <th className="px-3 py-3.5 text-center">Forge</th>
             <th className="px-3 py-3.5"><Header label="Total" field="total" /></th>
             <th className="px-3 py-3.5"><Header label="Say it" field="pronounceability" /></th>
             <th className="px-3 py-3.5"><Header label="Recall" field="memorability" /></th>
@@ -43,7 +44,6 @@ export function ResultsTable({ candidates, extensions, shortlisted, onToggleShor
             <th className="px-3 py-3.5"><Header label="Brand" field="brandability" /></th>
             <th className="px-3 py-3.5">Domains</th>
             <th className="px-3 py-3.5">What it is</th>
-            <th className="px-4 py-3.5 text-right">Forge</th>
           </tr>
         </thead>
         <tbody>
@@ -54,6 +54,11 @@ export function ResultsTable({ candidates, extensions, shortlisted, onToggleShor
                 <td className="px-5 py-3">
                   <div className="font-display text-[15px] font-semibold tracking-tight">{candidate.name}</div>
                   <div className="mt-0.5 text-[10px] text-muted">{candidate.length} letters</div>
+                </td>
+                <td className="px-3 py-3 text-center">
+                  <button aria-label={saved ? `Remove ${candidate.name} from workshop` : `Forge ${candidate.name}`} title={saved ? "Remove from workshop" : "Send to Name Workshop"} onClick={() => onToggleShortlist(candidate.name)} className={`rounded-lg p-2 transition ${saved ? "bg-lime/10 text-lime" : "text-[#545a64] hover:bg-white/5 hover:text-white"}`}>
+                    <AnvilIcon filled={saved} className="h-5 w-5" />
+                  </button>
                 </td>
                 <td className="px-3 py-3"><ScoreRing score={candidate.total} /></td>
                 <td className="px-3 py-3"><Metric value={candidate.pronounceability} /></td>
@@ -109,11 +114,6 @@ export function ResultsTable({ candidates, extensions, shortlisted, onToggleShor
                   ) : (
                     <p className="text-xs text-[#aeb3bc]">Verify domains to research this name</p>
                   )}
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <button aria-label={saved ? `Remove ${candidate.name} from workshop` : `Forge ${candidate.name}`} title={saved ? "Remove from workshop" : "Send to Name Workshop"} onClick={() => onToggleShortlist(candidate.name)} className={`rounded-lg p-2 transition ${saved ? "bg-lime/10 text-lime" : "text-[#545a64] hover:bg-white/5 hover:text-white"}`}>
-                    <AnvilIcon filled={saved} className="h-5 w-5" />
-                  </button>
                 </td>
               </tr>
             );
