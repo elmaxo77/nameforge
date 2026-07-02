@@ -148,7 +148,17 @@ export function NameForgeApp() {
               </div>
             </div>
 
-            <Filters filters={filters} setFilters={(value) => { setFilters(value); setVisibleCount(60); }} extension={extension} setExtension={setExtension} availableExtensions={options.extensions} />
+            <Filters
+              filters={filters}
+              setFilters={(value) => { setFilters(value); setVisibleCount(60); }}
+              extension={extension}
+              setExtension={(value) => {
+                setExtension(value);
+                setFilters((current) => ({ ...current, status: "all" }));
+                setVisibleCount(60);
+              }}
+              availableExtensions={options.extensions}
+            />
             <ResultsTable candidates={filtered.slice(0, visibleCount)} extension={extension} shortlisted={new Set(shortlist.map((item) => item.name))} onToggleShortlist={toggleShortlist} sort={sort} descending={descending} onSort={changeSort} onVerify={(candidate) => verifyDomains([candidate])} verifying={verifying} />
             {visibleCount < filtered.length && (
               <div className="border-t border-line p-4 text-center">
