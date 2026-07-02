@@ -33,7 +33,7 @@ export function ResultsTable({ candidates, extension, shortlisted, onToggleShort
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[930px] border-collapse text-left">
+      <table className="w-full min-w-[1240px] border-collapse text-left">
         <thead>
           <tr className="border-b border-line bg-[#0a0c0f] text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">
             <th className="px-5 py-3.5"><Header label="Name" field="name" /></th>
@@ -43,12 +43,15 @@ export function ResultsTable({ candidates, extension, shortlisted, onToggleShort
             <th className="px-3 py-3.5"><Header label="Unique" field="uniqueness" /></th>
             <th className="px-3 py-3.5"><Header label="Brand" field="brandability" /></th>
             <th className="px-3 py-3.5">{extension}</th>
+            <th className="px-3 py-3.5">Website</th>
+            <th className="px-3 py-3.5">What it is</th>
             <th className="px-4 py-3.5 text-right">Save</th>
           </tr>
         </thead>
         <tbody>
           {candidates.map((candidate) => {
             const saved = shortlisted.has(candidate.name);
+            const research = candidate.research?.[extension];
             return (
               <tr key={candidate.id} className="group border-b border-line/70 transition hover:bg-white/[0.025]">
                 <td className="px-5 py-3">
@@ -71,6 +74,18 @@ export function ResultsTable({ candidates, extension, shortlisted, onToggleShort
                       {verifying.has(candidate.id) ? "…" : "Check"}
                     </button>
                   </div>
+                </td>
+                <td className="max-w-40 px-3 py-3">
+                  {research?.website ? (
+                    <a href={research.website} target="_blank" rel="noreferrer" className="block truncate text-xs font-medium text-lime hover:underline">
+                      {research.website.replace(/^https?:\/\//, "")}
+                    </a>
+                  ) : <span className="text-xs text-[#4f5560]">—</span>}
+                </td>
+                <td className="max-w-72 px-3 py-3">
+                  <p className="truncate text-xs text-[#aeb3bc]" title={research?.description}>
+                    {research?.description || (candidate.domains[extension] === "unknown" ? "Verify domain first" : "Researching…")}
+                  </p>
                 </td>
                 <td className="px-4 py-3 text-right">
                   <button aria-label={saved ? `Remove ${candidate.name} from shortlist` : `Shortlist ${candidate.name}`} onClick={() => onToggleShortlist(candidate.name)} className={`rounded-lg p-2 transition ${saved ? "bg-lime/10 text-lime" : "text-[#545a64] hover:bg-white/5 hover:text-white"}`}>

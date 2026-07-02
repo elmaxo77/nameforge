@@ -94,6 +94,34 @@ export function NameForgeApp() {
           ? { ...candidate, domains: { ...candidate.domains, [extension]: data.results[domain] } }
           : candidate;
       }));
+
+      const researchResponse = await fetch("/api/domains/research", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: batch.map((item) => {
+            const domain = `${item.name.toLowerCase()}${extension}`;
+            return { name: item.name, domain, status: data.results[domain] || "unknown" };
+          }),
+        }),
+      });
+      if (researchResponse.ok) {
+        const researchData = await researchResponse.json() as {
+          results: Record<string, { website?: string; description?: string }>;
+        };
+        setCandidates((current) => current.map((candidate) => {
+          const domain = `${candidate.name.toLowerCase()}${extension}`;
+          return researchData.results[domain]
+            ? {
+                ...candidate,
+                research: {
+                  ...candidate.research,
+                  [extension]: researchData.results[domain],
+                },
+              }
+            : candidate;
+        }));
+      }
     } finally {
       setVerifying((current) => {
         const next = new Set(current);

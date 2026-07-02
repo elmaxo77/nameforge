@@ -15,6 +15,8 @@ Open `http://localhost:3000`.
 
 The server uses IANA's RDAP bootstrap registry to discover the authoritative service for each extension. A `200` response means registered, `404` means no registration record, and rate limits or inconclusive responses remain `unknown`. Checks are limited to 25 domains per request to respect public registry infrastructure.
 
+After verification, registered domains are enriched with their public homepage title or meta description. Available names are matched against Wikipedia's public search endpoint for a short, one-line context description. Website requests have strict timeouts and private-network protections.
+
 ## Storage
 
 Shortlist names and notes are saved to browser `localStorage`. The rest of the app is stateless and requires no database for the MVP.
