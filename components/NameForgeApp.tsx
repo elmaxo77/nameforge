@@ -206,6 +206,7 @@ export function NameForgeApp() {
         body: JSON.stringify({
           name: entry.currentName || entry.name,
           extensions: options.extensions,
+          targetLength: entry.targetLength || (entry.currentName || entry.name).length,
         }),
       });
       if (!response.ok) throw new Error("Variant generation failed");
@@ -229,6 +230,7 @@ export function NameForgeApp() {
       return {
         ...entry,
         currentName: variant.name,
+        targetLength: variant.name.length,
         history: [...(entry.history || []), previous],
         variants: undefined,
       };
@@ -240,8 +242,22 @@ export function NameForgeApp() {
       if (entry.name !== sourceName || !entry.history?.length) return entry;
       const history = [...entry.history];
       const previous = history.pop();
-      return { ...entry, currentName: previous || entry.name, history, variants: undefined };
+      return {
+        ...entry,
+        currentName: previous || entry.name,
+        targetLength: (previous || entry.name).length,
+        history,
+        variants: undefined,
+      };
     }));
+  };
+
+  const changeWorkspaceLength = (sourceName: string, length: number) => {
+    setShortlist((current) => current.map((entry) =>
+      entry.name === sourceName
+        ? { ...entry, targetLength: length, variants: undefined }
+        : entry,
+    ));
   };
 
   return (
@@ -318,6 +334,7 @@ export function NameForgeApp() {
             onGenerate={generateWorkspaceVariants}
             onChoose={chooseWorkspaceVariant}
             onBack={stepWorkspaceBack}
+            onLengthChange={changeWorkspaceLength}
           />
         </div>
       </div>

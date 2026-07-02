@@ -5,7 +5,7 @@ const VOWELS = ["a", "e", "i", "o", "u"];
 const BRIDGES = ["l", "n", "r", "v", "x"];
 const ENDINGS = ["a", "o", "i", "ly", "io", "ia", "ix", "en", "or"];
 
-export function generateDomainVariants(rawName: string, limit = 40) {
+export function generateDomainVariants(rawName: string, limit = 40, targetLength?: number) {
   const name = rawName.toLowerCase().replace(/[^a-z]/g, "");
   const random = mulberry32(hashString(name));
   const variants = new Set<string>();
@@ -39,11 +39,34 @@ export function generateDomainVariants(rawName: string, limit = 40) {
     variants.add(`${name.slice(0, index)}${letter}${name.slice(index + 1)}${random() > 0.65 ? pick(ENDINGS, random) : ""}`);
   }
 
+  if (targetLength) {
+    const desired = Math.max(3, Math.min(12, targetLength));
+    for (let attempt = 0; attempt < 160; attempt += 1) {
+      let variant = name;
+      while (variant.length < desired) {
+        const index = Math.floor(random() * (variant.length + 1));
+        const letter = random() > 0.45 ? pick(VOWELS, random) : pick(BRIDGES, random);
+        variant = `${variant.slice(0, index)}${letter}${variant.slice(index)}`;
+      }
+      while (variant.length > desired) {
+        const index = Math.floor(random() * variant.length);
+        variant = `${variant.slice(0, index)}${variant.slice(index + 1)}`;
+      }
+      if (variant === name || random() > 0.3) {
+        const index = Math.floor(random() * variant.length);
+        const letter = random() > 0.45 ? pick(VOWELS, random) : pick(BRIDGES, random);
+        variant = `${variant.slice(0, index)}${letter}${variant.slice(index + 1)}`;
+      }
+      variants.add(variant);
+    }
+  }
+
   return [...variants]
     .filter((variant) =>
       variant.length >= 3 &&
       variant.length <= 12 &&
       variant !== name &&
+      (!targetLength || variant.length === targetLength) &&
       !/[^aeiouy]{3,}/.test(variant) &&
       scoreName(variant).pronounceability >= 72
     )

@@ -10,7 +10,7 @@ const allowedExtensions: Extension[] = [".com", ".ai", ".io"];
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json() as { name?: unknown; extensions?: unknown };
+    const body = await request.json() as { name?: unknown; extensions?: unknown; targetLength?: unknown };
     if (typeof body.name !== "string") {
       return NextResponse.json({ error: "Invalid name" }, { status: 400 });
     }
@@ -18,7 +18,10 @@ export async function POST(request: Request) {
       ? body.extensions.filter((value): value is Extension => allowedExtensions.includes(value as Extension))
       : allowedExtensions;
     const extensions = requested.length ? requested : allowedExtensions;
-    const names = generateDomainVariants(body.name, 12).slice(0, 8);
+    const targetLength = typeof body.targetLength === "number"
+      ? Math.max(3, Math.min(12, Math.round(body.targetLength)))
+      : body.name.replace(/[^a-z]/gi, "").length;
+    const names = generateDomainVariants(body.name, 24, targetLength).slice(0, 8);
     const variants: WorkspaceVariant[] = [];
 
     for (const name of names) {

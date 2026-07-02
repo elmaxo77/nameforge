@@ -10,9 +10,10 @@ interface Props {
   onGenerate: (sourceName: string) => void;
   onChoose: (sourceName: string, variant: WorkspaceVariant) => void;
   onBack: (sourceName: string) => void;
+  onLengthChange: (sourceName: string, length: number) => void;
 }
 
-export function ShortlistDrawer({ entries, extensions, generating, onNote, onRemove, onGenerate, onChoose, onBack }: Props) {
+export function ShortlistDrawer({ entries, extensions, generating, onNote, onRemove, onGenerate, onChoose, onBack, onLengthChange }: Props) {
   if (!entries.length) return null;
 
   return (
@@ -32,6 +33,7 @@ export function ShortlistDrawer({ entries, extensions, generating, onNote, onRem
       <div className="space-y-4">
         {entries.map((entry) => {
           const currentName = entry.currentName || entry.name;
+          const targetLength = entry.targetLength || currentName.length;
           const isGenerating = generating.has(entry.name);
           return (
             <article key={entry.name} className="overflow-hidden rounded-2xl border border-line bg-[#090b0e]">
@@ -48,6 +50,24 @@ export function ShortlistDrawer({ entries, extensions, generating, onNote, onRem
                   <div className="font-display text-2xl font-semibold tracking-tight">{currentName}</div>
                 </div>
                 <div className="flex items-center gap-2">
+                  <div className="flex items-center rounded-lg border border-line bg-white/[0.025] p-1">
+                    <button
+                      onClick={() => onLengthChange(entry.name, Math.max(3, targetLength - 1))}
+                      disabled={targetLength <= 3}
+                      className="grid h-7 w-7 place-items-center rounded-md text-sm text-muted transition hover:bg-white/5 hover:text-white disabled:opacity-30"
+                      aria-label="Decrease variant length"
+                    >−</button>
+                    <div className="min-w-16 px-1 text-center">
+                      <span className="block text-[8px] uppercase tracking-wider text-muted">Length</span>
+                      <span className="text-xs font-bold text-white">{targetLength}</span>
+                    </div>
+                    <button
+                      onClick={() => onLengthChange(entry.name, Math.min(12, targetLength + 1))}
+                      disabled={targetLength >= 12}
+                      className="grid h-7 w-7 place-items-center rounded-md text-sm text-muted transition hover:bg-white/5 hover:text-white disabled:opacity-30"
+                      aria-label="Increase variant length"
+                    >+</button>
+                  </div>
                   {!!entry.history?.length && (
                     <button onClick={() => onBack(entry.name)} className="rounded-lg border border-line px-3 py-2 text-[10px] font-semibold text-muted transition hover:text-white">
                       ← Back

@@ -31,6 +31,7 @@ export interface NameCandidate extends NameScores {
 export interface ShortlistEntry {
   name: string;
   currentName?: string;
+  targetLength?: number;
   history?: string[];
   variants?: WorkspaceVariant[];
   note: string;
