@@ -30,6 +30,15 @@ export interface NameCandidate extends NameScores {
 
 export interface ShortlistEntry {
   name: string;
+  currentName?: string;
+  history?: string[];
+  variants?: WorkspaceVariant[];
   note: string;
   addedAt: number;
+}
+
+export interface WorkspaceVariant {
+  name: string;
+  domains: Record<Extension, DomainStatus>;
+  total: number;
 }

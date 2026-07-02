@@ -5,7 +5,7 @@ import { DEFAULT_OPTIONS } from "@/data/seed";
 import { exportCandidatesCsv } from "@/lib/csv";
 import { generateNames } from "@/lib/generator";
 import { scoreName } from "@/lib/scoring";
-import type { Extension, GeneratorOptions, NameCandidate, ShortlistEntry } from "@/types/name";
+import type { Extension, GeneratorOptions, NameCandidate, ShortlistEntry, WorkspaceVariant } from "@/types/name";
 import { DownloadIcon, GlobeIcon, SparkIcon } from "./icons";
 import { InputPanel } from "./InputPanel";
 import { Filters, type FilterState } from "./Filters";
@@ -27,6 +27,7 @@ export function NameForgeApp() {
   const [verifying, setVerifying] = useState<Set<string>>(new Set());
   const [exploring, setExploring] = useState<Set<string>>(new Set());
   const [exploreErrors, setExploreErrors] = useState<Record<string, string>>({});
+  const [workshopGenerating, setWorkshopGenerating] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     try {
@@ -185,6 +186,55 @@ export function NameForgeApp() {
     }
   };
 
+  const generateWorkspaceVariants = async (sourceName: string) => {
+    const entry = shortlist.find((item) => item.name === sourceName);
+    if (!entry) return;
+    setWorkshopGenerating((current) => new Set(current).add(sourceName));
+    try {
+      const response = await fetch("/api/workspace/variants", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: entry.currentName || entry.name,
+          extensions: options.extensions,
+        }),
+      });
+      if (!response.ok) throw new Error("Variant generation failed");
+      const data = await response.json() as { variants: WorkspaceVariant[] };
+      setShortlist((current) => current.map((item) =>
+        item.name === sourceName ? { ...item, variants: data.variants } : item,
+      ));
+    } finally {
+      setWorkshopGenerating((current) => {
+        const next = new Set(current);
+        next.delete(sourceName);
+        return next;
+      });
+    }
+  };
+
+  const chooseWorkspaceVariant = (sourceName: string, variant: WorkspaceVariant) => {
+    setShortlist((current) => current.map((entry) => {
+      if (entry.name !== sourceName) return entry;
+      const previous = entry.currentName || entry.name;
+      return {
+        ...entry,
+        currentName: variant.name,
+        history: [...(entry.history || []), previous],
+        variants: undefined,
+      };
+    }));
+  };
+
+  const stepWorkspaceBack = (sourceName: string) => {
+    setShortlist((current) => current.map((entry) => {
+      if (entry.name !== sourceName || !entry.history?.length) return entry;
+      const history = [...entry.history];
+      const previous = history.pop();
+      return { ...entry, currentName: previous || entry.name, history, variants: undefined };
+    }));
+  };
+
   return (
     <main className="mx-auto min-h-screen max-w-[1500px] px-4 pb-12 sm:px-6">
       <header className="flex items-center justify-between border-b border-line/70 py-5">
@@ -250,7 +300,16 @@ export function NameForgeApp() {
             )}
           </section>
 
-          <ShortlistDrawer entries={shortlist} onRemove={toggleShortlist} onNote={(name, note) => setShortlist((current) => current.map((entry) => entry.name === name ? { ...entry, note } : entry))} />
+          <ShortlistDrawer
+            entries={shortlist}
+            extensions={options.extensions}
+            generating={workshopGenerating}
+            onRemove={toggleShortlist}
+            onNote={(name, note) => setShortlist((current) => current.map((entry) => entry.name === name ? { ...entry, note } : entry))}
+            onGenerate={generateWorkspaceVariants}
+            onChoose={chooseWorkspaceVariant}
+            onBack={stepWorkspaceBack}
+          />
         </div>
       </div>
 

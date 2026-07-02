@@ -19,6 +19,8 @@ After verification, registered domains are enriched with their public homepage t
 
 Taken domains can be explored for close available alternatives. The engine tries letter reshuffles first, then small pronounceable insertions, substitutions, and endings, checking at most 40 variants through RDAP. When found, the available alternative replaces the taken candidate directly in its result row.
 
+Starred names enter a persistent Name Workshop. Each workshop session can generate eight scored variants with live domain checks, highlight variants with at least one available selected extension, follow a chosen variant into another generation, and step backward through its independent history.
+
 ## Storage
 
 Shortlist names and notes are saved to browser `localStorage`. The rest of the app is stateless and requires no database for the MVP.
